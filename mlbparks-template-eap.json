@@ -5,7 +5,7 @@
       "name": "mlbparks-eap",
       "annotations": {
          "iconClass": "icon-jboss",
-         "description": "Application template for MLB Parks application on EAP 6 & MongoDB built using STI"
+         "description": "Application template for MLB Parks application on EAP 7 & MongoDB built using STI"
       }
    },
    "labels": {
