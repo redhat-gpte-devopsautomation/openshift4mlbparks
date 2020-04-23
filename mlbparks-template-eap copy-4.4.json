@@ -2,15 +2,15 @@
    "kind": "Template",
    "apiVersion": "v1",
    "metadata": {
-      "name": "mlbparks-wildfly",
+      "name": "mlbparks-eap",
       "annotations": {
          "iconClass": "icon-jboss",
-         "description": "Application template for MLB Parks application on WildFly & MongoDB built using STI"
+         "description": "Application template for MLB Parks application on EAP 7 & MongoDB built using STI"
       }
    },
    "labels": {
       "application": "mlbparks",
-      "createdBy": "template-mlbparks-wildfly"
+      "createdBy": "template-mlbparks-eap"
    },
    "parameters": [
       {
@@ -25,7 +25,7 @@
       {
          "description": "Git source URI for application",
          "name": "GIT_URI",
-         "value": "https://github.com/jorgemoralespou/openshift3mlbparks.git"
+         "value": "https://github.com/redhat-gpte-devopsautomation/openshift4mlbparks.git"
       },
       {
          "description": "Git branch/tag reference",
@@ -125,7 +125,7 @@
                   "from": {
                      "kind": "ImageStreamTag",
                      "namespace": "openshift",
-                     "name": "wildfly:latest"
+                     "name": "jboss-eap71-openshift:1.4"
                   },
                   "env": [
                      {
@@ -179,7 +179,7 @@
                      "from": {
                         "kind": "ImageStreamTag",
                         "namespace": "openshift",
-                        "name": "mongodb:2.6"
+                        "name": "mongodb:3.6"
                      }
                   }
                },
@@ -317,15 +317,38 @@
                               "name": "${APPLICATION_NAME}-http",
                               "containerPort": 8080,
                               "protocol": "TCP"
+                           },
+                           {
+                              "name": "${APPLICATION_NAME}-ping",
+                              "containerPort": 8888,
+                              "protocol": "TCP"
                            }
                         ],
-                        "readinessProbe": {
-                           "httpGet": {
-                              "path": "/",
-                              "port": 8080
-                           }
+                                "readinessProbe": {
+                                  "timeoutSeconds": 3,
+                                  "initialDelaySeconds": 3,
+                                  "httpGet": {
+                                    "path": "/",
+                                    "port": 8080
+                                  }
+                                },
+                                "livenessProbe": {
+                                  "timeoutSeconds": 3,
+                                  "initialDelaySeconds": 30,
+                                  "httpGet": {
+                                    "path": "/",
+                                    "port": 8080
+                                    }
                         },
                         "env": [
+                           {
+                              "name": "OPENSHIFT_DNS_PING_SERVICE_NAME",
+                              "value": "${APPLICATION_NAME}-ping"
+                           },
+                           {
+                              "name": "OPENSHIFT_DNS_PING_SERVICE_PORT",
+                              "value": "8888"
+                           },
                            {
                               "name": "MONGODB_USER",
                               "value": "${MONGODB_USER}"
@@ -408,6 +431,27 @@
                   "protocol": "TCP",
                   "port": 8080,
                   "targetPort": 8080
+               }
+            ],
+            "selector": {
+               "deploymentConfig": "${APPLICATION_NAME}"
+            }
+         }
+      },
+      {
+         "kind": "Service",
+         "apiVersion": "v1",
+         "metadata": {
+            "name": "${APPLICATION_NAME}-ping",
+            "annotations": {
+               "description": "Ping service for clustered applications"
+            }
+         },
+         "spec": {
+            "ports": [
+               {
+                  "port": 8888,
+                  "targetPort": 8888
                }
             ],
             "selector": {
